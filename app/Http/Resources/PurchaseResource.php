@@ -14,6 +14,14 @@ class PurchaseResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => (string) $this->id,
+            'user' => $this->user->email,
+            'purchase' => [
+                'product_name' => $this->product->name,
+                'product_description' => $this->product->description,
+                'product_amount' => $this->product->amount,
+            ]
+        ];
     }
 }

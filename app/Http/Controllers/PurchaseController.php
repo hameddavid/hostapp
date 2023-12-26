@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PurchaseResource;
+use App\Http\Requests\StorePurchaseRequest;
+use App\Models\Purchase;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PurchaseController extends Controller
 {
@@ -11,23 +15,28 @@ class PurchaseController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        return PurchaseResource::collection(
+            Purchase::where('user_id', Auth::user()->id)->get()
+        );
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StorePurchaseRequest $request)
     {
-        //
+        $request->validated($request->all()); 
+
+        $purchase = Purchase::create([
+            'user_id' => Auth::user()->id,
+            'product_id' => $request->product_id,
+            'quantity' => $request->quantity,
+            'purchase_date' => $request->purchase_date,
+            'expiring_date' => $request->expiring_date,
+            'invoice_number' => $request->invoice_number,
+        ]);
+
+        return new PurchaseResource($purchase);
     }
 
     /**
