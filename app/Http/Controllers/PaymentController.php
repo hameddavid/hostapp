@@ -29,6 +29,21 @@ class PaymentController extends Controller
         $user = User::where('email',$request->email)->first();
         if($user){
             $monifyConfig = PaymentHelper::createInvoice($request->amount,'Desc',$request->email,$user->name );
+
+            $payment_check = Payment::where(['user_id'=>$user->id, 'amount'=>$request->amount])->first();
+            if( $payment_check ){
+                $payment_check->product_id = $request->product_id;
+                $payment_check->payment_date_time = Carbon::now()->toDateTimeString();
+                $payment_check->invoiceReference = $monifyConfig->invoiceReference;
+                $payment_check->transactionReference = $monifyConfig->transactionReference;
+                $payment_check->url = $monifyConfig->checkoutUrl;
+                $payment_check->account_number = $monifyConfig->accountNumber;
+                $payment_check->save();
+                $purchase_check = Purchase::where('payment_id', $payment_check->id)->first();
+                $purchase_check->meta_data = $request->metadata;
+                $purchase_check->save();
+                return $this->success([ 'data' => $monifyConfig]);
+            }
             $payment = Payment::create([
                 'user_id' => $user->id,
                 'product_id' => $request->product_id,
@@ -52,7 +67,7 @@ class PaymentController extends Controller
             ]);
             // Return payment info from PaymentHelper
             // $request->amount,$request->metadata,$request->email,$user->name
-            return $this->success([ 'data' => $monifyConfig->checkoutUrl]);
+            return $this->success([ 'data' => $monifyConfig]);
         }
         // elseif(!$user){
         //     $name = explode('@', $request->email);
@@ -72,4 +87,7 @@ class PaymentController extends Controller
     }
 
     
+    public function get_payment_status(Request $request){
+        return 'Testing from backend';
+    }
 }
