@@ -11,14 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('purchases', function (Blueprint $table) {
+        Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('product_id');
-            $table->integer('quantity')->default(0);
-            $table->date('purchase_date');
-            $table->date('expiring_date');
-            $table->char('invoice_number', 100);
+            $table->double('amount', 8, 2);
+            $table->double('part_pay', 8, 2)->default(0.00);
+            $table->enum('payment_status', ['PENDING','SUCCESS'])->default('PENDING');
+            $table->string('invoiceReference');
+            $table->string('transactionReference');
+            $table->string('url');
+            $table->string('account_number');
+            $table->date('payment_date_time');
+            $table->char('deleted', 1)->default('N');
             $table->foreign('user_id')
                 ->references('id')
                 ->on('users')
@@ -36,6 +41,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('purchases');
+        //
+        Schema::dropIfExists('payments');
     }
 };

@@ -7,14 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\Product;
 
-class Purchase extends Model
+class Payment extends Model
 {
     use HasFactory;
+   
+    protected $fillable = ['user_id' ,'product_id', 'amount','part_pay','invoiceReference','transactionReference','url','account_number','payment_date_time'];
 
-    protected $fillable = ['user_id' ,'product_id', 'payment_id','quantity','meta_data','purchase_date','expiring_date','invoice_number'];
-
-    protected $casts = ['meta_data' => 'array',];
-    
     public function user(){
         return $this->belongsTo(User::class, 'user_id');
     }
@@ -23,7 +21,4 @@ class Purchase extends Model
         return $this->belongsTo(Product::class, 'product_id');
     }
 
-    public function payment(){
-        return $this->belongsTo(Payment::class, 'payment_id');
-    }
 }
