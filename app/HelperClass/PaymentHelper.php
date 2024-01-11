@@ -25,13 +25,12 @@ class PaymentHelper{
 
     public static function createInvoice($amount, $description, $email, $name)
     {
-        $multiplier = 1160.42;
         $login = SELF::monnifyLogin();
         $generateInvoice = Http::withHeaders([
             "Authorization"=>"Bearer {$login->responseBody->accessToken}"
         ])->post(env("MONNIFY_TEST_ENDPOINT")."/api/v1/invoice/create",[
             "redirectUrl" => 'https://api.serversuits.com/get-transaction-status',
-            "amount"=>$amount * $multiplier,
+            "amount"=>$amount * $this->getMultiplier(),
             "invoiceReference"=>time(),
             "description"=>$description,
             "currencyCode"=>"NGN",
@@ -63,8 +62,11 @@ class PaymentHelper{
         else{
             return null;
         }
-        
     }
-
+    
+    public function getMultiplier(){
+        $multiplier = 1160.42;
+        return $multiplier;
+    }
  
 }
