@@ -89,6 +89,14 @@ class PaymentController extends Controller
     
     public function get_payment_status(Request $request){
         $reference = $request->get('paymentReference');
+        if(!$reference){
+            return redirect('https://serversuits.com');
+        }
+        $check_ref=Payment::where(['invoiceReference'=>$reference,'payment_status'=>'PENDING'])->first();
+        if(!$check_ref){
+            return redirect('https://serversuits.com');
+        }
+
         $status = PaymentHelper::getTransactionStatus($reference);
         return $status;
     }
