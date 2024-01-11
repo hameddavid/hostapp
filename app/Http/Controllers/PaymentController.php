@@ -88,6 +88,8 @@ class PaymentController extends Controller
 
     
     public function get_payment_status(Request $request){
+        $reference = $request->get('reference');
+        $status = PaymentHelper::getTransactionStatus($reference);
         return 'Testing from backend';
     }
 }
