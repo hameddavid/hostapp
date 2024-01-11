@@ -48,7 +48,7 @@ class PaymentController extends Controller
             $payment = Payment::create([
                 'user_id' => $user->id,
                 'product_id' => $request->product_id,
-                'amount' => $request->amount,
+                'amount' => $request->total_amount,
                 'payment_date_time' => Carbon::now()->toDateTimeString(),
                 'invoiceReference' => $monifyConfig->invoiceReference,
                 'transactionReference' => $monifyConfig->transactionReference,
@@ -90,6 +90,17 @@ class PaymentController extends Controller
     public function make_second_payment($request){
         $user = User::where('email',$request->email)->first();
         $monifyConfig = PaymentHelper::createInvoice($request->amount,'Desc',$request->email,$user->name);
+        $payment = Payment::create([
+            'user_id' => $user->id,
+            'product_id' => $request->product_id,
+            'amount' => $request->amount,
+            'payment_date_time' => Carbon::now()->toDateTimeString(),
+            'invoiceReference' => $monifyConfig->invoiceReference,
+            'transactionReference' => $monifyConfig->transactionReference,
+            'url' => $monifyConfig->checkoutUrl,
+            'account_number' => $monifyConfig->accountNumber
+        ]);
+        session(['part_pay' => false]);
         return redirect($monifyConfig->checkoutUrl);
     }
 
@@ -113,7 +124,7 @@ class PaymentController extends Controller
         if(session('part_pay')){
             return $this->make_second_payment(session('request'));
         }
-        return $status;
+        return redirect("https://serversuits.com");
     }
     
 }
