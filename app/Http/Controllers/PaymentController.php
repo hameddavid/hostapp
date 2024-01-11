@@ -25,7 +25,7 @@ class PaymentController extends Controller
     public function make_payment(MakePaymentRequest $request){
     
         $request->validated($request->all());
-        
+        session(['part_pay' => $request->part_pay]);
         $user = User::where('email',$request->email)->first();
         if($user){
             $monifyConfig = PaymentHelper::createInvoice($request->amount,'Desc',$request->email,$user->name );
@@ -99,7 +99,7 @@ class PaymentController extends Controller
         }
         $status = PaymentHelper::getTransactionStatus($reference);
         if($status->paymentStatus == 'PAID'){
-            $check_ref->part_pay = $status->amountPaid/$multiplier;
+            session('part_pay')? $check_ref->part_pay = $status->amountPaid/$multiplier : null;
             $check_ref->payment_status = "SUCCESS";
             $check_ref->save();
         }
