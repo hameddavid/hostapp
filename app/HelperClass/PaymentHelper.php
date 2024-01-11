@@ -54,8 +54,14 @@ class PaymentHelper{
             "transactionReference " => $reference,
         ]);
         $response= json_decode(json_encode($status->json()),FALSE);
-        if($response->responseMessage == "success" && $response->requestSuccessful == true){
+        if(isset($response->error)){
+            return $response->error;
+        }
+        elseif($response->responseMessage == "success" && $response->requestSuccessful == true){
             return $response->responseBody;
+        }
+        else{
+            return null;
         }
         
     }
