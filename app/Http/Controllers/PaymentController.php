@@ -116,7 +116,7 @@ class PaymentController extends Controller
             return redirect('https://serversuits.com');
         }
         $status = PaymentHelper::getTransactionStatus($reference);
-        if($status->paymentStatus == 'PAID'){
+        if(!is_string($status) && $status->paymentStatus == 'PAID'){
             session('part_pay')? $check_ref->part_pay = $status->amountPaid/$multiplier : null;
             $check_ref->payment_status = "SUCCESS";
             $check_ref->save();
