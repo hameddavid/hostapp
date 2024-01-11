@@ -21,6 +21,8 @@ class PaymentHelper{
         return $response;
     }
 
+
+
     public static function createInvoice($amount, $description, $email, $name)
     {
         $multiplier = 1160.42;
@@ -43,7 +45,7 @@ class PaymentHelper{
         // Log::info($response);
         return $response->responseBody;
     }
-
+    
     public static function getTransactionStatus($reference){
         $login = SELF::monnifyLogin();
         $status = Http::withHeaders([
@@ -52,7 +54,10 @@ class PaymentHelper{
             "transactionReference " => $reference,
         ]);
         $response= json_decode(json_encode($status->json()),FALSE);
-        return $response->responseBody;
+        if($response->responseMessage == "success" && $response->requestSuccessful == true){
+            return $response->responseBody;
+        }
+        
     }
 
  
