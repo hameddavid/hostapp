@@ -21,8 +21,6 @@ class PaymentHelper{
         return $response;
     }
 
-
-
     public static function createInvoice($amount, $description, $email, $name)
     {
         $multiplier = 1160.42;
@@ -30,7 +28,7 @@ class PaymentHelper{
         $generateInvoice = Http::withHeaders([
             "Authorization"=>"Bearer {$login->responseBody->accessToken}"
         ])->post(env("MONNIFY_TEST_ENDPOINT")."/api/v1/invoice/create",[
-            "redirectUrl" => 'https',
+            "redirectUrl" => 'https://api.serversuits.com/get-transaction-status',
             "amount"=>$amount * $multiplier,
             "invoiceReference"=>time(),
             "description"=>$description,
@@ -43,6 +41,17 @@ class PaymentHelper{
         // Log::info($generateInvoice->json());
         $response= json_decode(json_encode($generateInvoice->json()),FALSE);
         // Log::info($response);
+        return $response->responseBody;
+    }
+
+    public static function getTransactionStatus($reference){
+        $login = SELF::monnifyLogin();
+        $status = Http::withHeaders([
+            "Authorization"=>"Bearer {$login->responseBody->accessToken}"
+        ])->get(env("MONNIFY_TEST_ENDPOINT")."/api/v2/transactions/",[
+            "transactionReference " => $reference,
+        ]);
+        $response= json_decode(json_encode($status->json()),FALSE);
         return $response->responseBody;
     }
 
