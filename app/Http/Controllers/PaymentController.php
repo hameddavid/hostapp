@@ -25,10 +25,9 @@ class PaymentController extends Controller
     public function make_payment(MakePaymentRequest $request){
     
         $request->validated($request->all());
-        session(['part_pay' => $request->part_pay]);
-        session(['request' => $request]);
         $user = User::where('email',$request->email)->first();
         if($user){
+            $invoice_number = Carbon::now()->timestamp."-".$user->id;
             $monifyConfig = PaymentHelper::createInvoice($request->amount,'Desc',$request->email,$user->name );
 
             $payment_check = Payment::where(['user_id'=>$user->id, 'amount'=>$request->amount])->first();
@@ -49,6 +48,8 @@ class PaymentController extends Controller
                 'user_id' => $user->id,
                 'product_id' => $request->product_id,
                 'amount' => $request->total_amount,
+                'part_pay' => $request->amount,
+                'invoice_number'=> $invoice_number,
                 'payment_date_time' => Carbon::now()->toDateTimeString(),
                 'invoiceReference' => $monifyConfig->invoiceReference,
                 'transactionReference' => $monifyConfig->transactionReference,
@@ -64,7 +65,7 @@ class PaymentController extends Controller
                 'meta_data' => $request->metadata,
                 'purchase_date' => Carbon::now(),
                 'expiring_date' => Carbon::now(),
-                'invoice_number' => Carbon::now()->timestamp."-".$user->id
+                'invoice_number' => $invoice_number
             ]);
             // Return payment info from PaymentHelper
             // $request->amount,$request->metadata,$request->email,$user->name
@@ -84,30 +85,29 @@ class PaymentController extends Controller
         //   ]);
         // }
         // else{}
-
     }
     
-    public function make_second_payment($request){
-        $user = User::where('email',$request->email)->first();
-        $monifyConfig = PaymentHelper::createInvoice($request->amount,'Desc',$request->email,$user->name);
+    public function make_second_payment($pay_ref, $email){
+        $user = User::where('email',$email)->first();
+        $monifyConfig = PaymentHelper::createInvoice($pay_ref->part_pay,'Desc',$email,$user->name);
         $payment = Payment::create([
             'user_id' => $user->id,
-            'product_id' => $request->product_id,
-            'amount' => $request->amount,
+            'product_id' => $pay_ref->product_id,
+            'amount' => $pay_ref->part_pay,
+            'part_pay' => $pay_ref->part_pay,
+            'invoice_number'=>$pay_ref->invoice_number,
             'payment_date_time' => Carbon::now()->toDateTimeString(),
             'invoiceReference' => $monifyConfig->invoiceReference,
             'transactionReference' => $monifyConfig->transactionReference,
             'url' => $monifyConfig->checkoutUrl,
             'account_number' => $monifyConfig->accountNumber
         ]);
-        session(['part_pay' => false]);
         return redirect($monifyConfig->checkoutUrl);
     }
 
     
     public function get_payment_status(Request $request){
         $reference = $request->get('paymentReference');
-        $multiplier = PaymentHelper::getMultiplier();
         if(!$reference){
             return redirect('https://serversuits.com');
         }
@@ -117,14 +117,19 @@ class PaymentController extends Controller
         }
         $status = PaymentHelper::getTransactionStatus($reference);
         //if(!is_string($status) && $status->paymentStatus == 'PAID'){
-            session('part_pay')? $check_ref->part_pay = $status->amountPaid/$multiplier : null;
             $check_ref->payment_status = "SUCCESS";
             $check_ref->save();
         //}
-        if(session('part_pay') == true){
-            return $this->make_second_payment(session('request'));
+        if($check_ref->part_pay < $check_ref->amount){
+            return $this->make_second_payment($check_ref,$check_ref->user->email);
         }
-        return redirect("https://serversuits.com");
+        else{
+            $purchase = Purchase::where(['user_id'=>$check_ref->user_id,'product_id'=>$check_ref->product_id,'invoice_number'=>$check_ref->invoice_number])->first();
+            $purchase->purchase_status = "PAID";
+            $purchase->save();
+            return redirect("https://serversuits.com");
+        }
+        
     }
     
 }
