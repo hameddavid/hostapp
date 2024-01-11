@@ -65,6 +65,7 @@ class PaymentController extends Controller
                 'expiring_date' => Carbon::now(),
                 'invoice_number' => Carbon::now()->timestamp."-".$user->id
             ]);
+            session(['reference' => $monifyConfig->transactionReference]);
             // Return payment info from PaymentHelper
             // $request->amount,$request->metadata,$request->email,$user->name
             return $this->success([ 'data' => $monifyConfig]);
@@ -88,8 +89,8 @@ class PaymentController extends Controller
 
     
     public function get_payment_status(Request $request){
-        $reference = $request->get('reference');
+        $reference = session('reference');
         $status = PaymentHelper::getTransactionStatus($reference);
-        return 'Testing from backend';
+        return $status;
     }
 }
