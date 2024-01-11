@@ -89,6 +89,7 @@ class PaymentController extends Controller
     
     public function get_payment_status(Request $request){
         $reference = $request->get('paymentReference');
+        $multiplier = PaymentHelper::getMultiplier();
         if(!$reference){
             return redirect('https://serversuits.com');
         }
@@ -98,10 +99,11 @@ class PaymentController extends Controller
         }
         $status = PaymentHelper::getTransactionStatus($reference);
         if($status->paymentStatus == 'PAID'){
-            $check_ref->part_pay = "";
+            $check_ref->part_pay = $status->amountPaid/$multiplier;
             $check_ref->payment_status = "SUCCESS";
             $check_ref->save();
         }
         return $status;
     }
+    
 }
