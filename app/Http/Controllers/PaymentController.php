@@ -29,7 +29,6 @@ class PaymentController extends Controller
         if($user){
             $invoice_number = Carbon::now()->timestamp."-".$user->id;
             $monifyConfig = PaymentHelper::createInvoice($request->amount,'Desc',$request->email,$user->name );
-
             $payment_check = Payment::where(['user_id'=>$user->id, 'amount'=>$request->amount])->first();
             if( $payment_check ){
                 $payment_check->product_id = $request->product_id;
@@ -116,18 +115,21 @@ class PaymentController extends Controller
             return redirect('https://serversuits.com');
         }
         $status = PaymentHelper::getTransactionStatus($reference);
-        //if(!is_string($status) && $status->paymentStatus == 'PAID'){
+        if(!is_string($status) && $status->paymentStatus == 'PAID'){
             $check_ref->payment_status = "SUCCESS";
             $check_ref->save();
-        //}
+        }
         if($check_ref->part_pay < $check_ref->amount){
             return $this->make_second_payment($check_ref,$check_ref->user->email);
         }
         else{
-            $purchase = Purchase::where(['user_id'=>$check_ref->user_id,'product_id'=>$check_ref->product_id,'invoice_number'=>$check_ref->invoice_number])->first();
-            $purchase->purchase_status = "PAID";
-            $purchase->save();
-            return redirect("https://serversuits.com");
+            if(!is_string($status) && $status->paymentStatus == 'PAID'){
+                $purchase = Purchase::where(['user_id'=>$check_ref->user_id,'product_id'=>$check_ref->product_id,'invoice_number'=>$check_ref->invoice_number])->first();
+                $purchase->purchase_status = "PAID";
+                $purchase->save();
+                return redirect("https://serversuits.com");
+            }
+                return redirect("https://serversuits.com");
         }
         
     }
