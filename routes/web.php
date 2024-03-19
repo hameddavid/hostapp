@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PaymentController;
 
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -16,6 +15,9 @@ use App\Http\Controllers\PaymentController;
 */
 
 Route::get('/', function () {
+    return view('welcome');
+});
+Route::get('/welcome', function () {
     return view('welcome');
 });
 Route::get('/get-transaction-status', [PaymentController::class, 'get_payment_status']);
