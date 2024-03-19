@@ -115,7 +115,7 @@ class PaymentController extends Controller
             }
         }
         catch(\Throwable $th){
-            return $this->error('','Oops!!, Please try again');
+            return $this->error('','Oops!!, Please try again', 401);
         }
          
         
