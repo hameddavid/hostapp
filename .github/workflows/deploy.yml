@@ -26,4 +26,5 @@ jobs:
       with:
         url: 'https://autobuild.serversuits.com/host-app'
         method: 'POST'
-        timeout: 15000 #15sec
+        timeout: 30000 #30sec
+        ignoreStatusCodes: true
