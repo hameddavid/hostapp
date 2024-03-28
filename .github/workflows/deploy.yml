@@ -25,5 +25,5 @@ jobs:
     - name: Call auto-build
       uses: fjogeleit/http-request-action@v1
       with:
-        url: 'https://autobuild.serversuits.com'
+        url: 'https://autobuild.serversuits.com/host-app'
         method: 'POST'
