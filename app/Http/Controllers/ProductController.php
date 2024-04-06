@@ -66,4 +66,57 @@ class ProductController extends Controller
     {
         //
     }
+
+
+    // public function index(): JsonResponse 
+    // {
+    //     return response()->json([
+    //         'data' => $this->productRepository->getAllproducts()
+    //     ]);
+    // }
+
+    // public function store(Request $request): JsonResponse 
+    // {
+    //     $productDetails = $request->only([
+    //         'client',
+    //         'details'
+    //     ]);
+
+    //     return response()->json(
+    //         [
+    //             'data' => $this->productRepository->createproduct($productDetails)
+    //         ],
+    //         Response::HTTP_CREATED
+    //     );
+    // }
+
+    // public function show(Request $request): JsonResponse 
+    // {
+    //     $productId = $request->route('id');
+
+    //     return response()->json([
+    //         'data' => $this->productRepository->getproductById($productId)
+    //     ]);
+    // }
+
+    // public function update(Request $request): JsonResponse 
+    // {
+    //     $productId = $request->route('id');
+    //     $productDetails = $request->only([
+    //         'client',
+    //         'details'
+    //     ]);
+
+    //     return response()->json([
+    //         'data' => $this->productRepository->updateproduct($productId, $productDetails)
+    //     ]);
+    // }
+
+    // public function destroy(Request $request): JsonResponse 
+    // {
+    //     $productId = $request->route('id');
+    //     $this->productRepository->deleteproduct($productId);
+
+    //     return response()->json(null, Response::HTTP_NO_CONTENT);
+    // }
 }
