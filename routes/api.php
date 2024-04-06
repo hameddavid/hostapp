@@ -28,6 +28,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::get('/make-payment', [PaymentController::class, 'make_payment']);
 Route::get('/get-payment-status', [PaymentController::class, 'get_payment_status']);
 
+// get-user-by-email
 
 // private route
 Route::group(['middleware' => ['auth:sanctum']], function(){

@@ -15,6 +15,7 @@ class RepositoryServiceProvider extends ServiceProvider
     {
         //
         $this->app->bind(ProductRepositoryInterface::class, ProductRepository::class);
+        
 
     }
 

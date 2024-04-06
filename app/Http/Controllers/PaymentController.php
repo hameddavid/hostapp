@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\HelperClass\PaymentHelper;
 use App\HelperClass\Helper1;
 use App\Http\Requests\MakePaymentRequest;
+use App\Http\Resources\UserResource;
+use App\Repositories\UserRepository;
 use App\Models\User;
 use App\Models\Payment;
 use Carbon\Carbon;
@@ -14,6 +16,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\AuthController;
 use App\Models\Purchase;
+use App\Repositories\PaymentRepository;
+use App\Repositories\PurchaseRepository;
 use App\Traits\HttpResponses;
 use Illuminate\Support\Facades\Hash;
 
@@ -22,15 +26,21 @@ class PaymentController extends Controller
 {
     use HttpResponses;
 
+
+    public function __construct(private UserRepository $userRepo, private PaymentRepository $payRepo, private PurchaseRepository $purchaseRepo)
+    {
+        
+    }
+
     public function make_payment(MakePaymentRequest $request){
         try{
             $request->validated($request->all());
-            $user = User::where('email',$request->email)->first();
+            $user = $this->userRepo->GetUserByEmail($request->email);
             if($user){
                 $invoice_number = Carbon::now()->timestamp."-".$user->id;
                 $monifyConfig = PaymentHelper::createInvoice($request->amount,'Desc',$request->email,$user->name );
                 $payment_check = Payment::where(['user_id'=>$user->id, 'payment_status'=>'PENDING',
-                'amount'=> $request->total_amount ])->first();
+                'amount'=> $request->amount ])->first();
                 if( $payment_check ){
                     $payment_check->product_id = $request->product_id;
                     $payment_check->payment_date_time = Carbon::now()->toDateTimeString();
@@ -42,7 +52,7 @@ class PaymentController extends Controller
                     $purchase_check = Purchase::where(['payment_id' => $payment_check->id, 'purchase_status' => 'PENDING'])->first();
                     $purchase_check->meta_data = $request->metadata;
                     $purchase_check->save();
-                    return $this->success([ 'data' => $monifyConfig]);
+                    return $this->successResponseResponse([ 'data' => $monifyConfig]);
                 }else{
                 $payment = Payment::create([
                     'user_id' => $user->id,
@@ -67,55 +77,59 @@ class PaymentController extends Controller
                     'expiring_date' => Carbon::now(),
                     'invoice_number' => $invoice_number
                 ]);
-                // Return payment info from PaymentHelper
-                // $request->amount,$request->metadata,$request->email,$user->name
-                return $this->success([ 'data' => $monifyConfig]);
+             
+                return $this->successResponse([ 'data' => $monifyConfig]);
                 }
             }
            elseif(!$user){
-                $name = explode('@', $request->email);
-                $password = '@@11223344'; //Helper1::generateSixRandomCharacter();
-                $new_user = User::create([
-                    'name' => $name[0],
-                    'email' => $request->email,
-                    'password' => Hash::make($password)
-                ]);
-                
-                $invoice_number = Carbon::now()->timestamp."-".$new_user->id;
-                $monifyConfig = PaymentHelper::createInvoice($request->amount,'Desc',$request->email,$new_user->name );
-                
-                $new_payment = Payment::create([
-                    'user_id' => $new_user->id,
+            $userDetails = $request->only(['name','email','password']);
+            // Log New User
+            $createUser = $this->userRepo->CreateUser($userDetails);
+            if($createUser['status'] == "OK"){
+                // Log New Payment
+                 $invoice_number = Carbon::now()->timestamp."-".$createUser['user']->id;
+                 $monifyConfig = PaymentHelper::createInvoice($request->amount,'Desc',$request->email,$createUser['user']->name );
+                 $createPayment = $this->payRepo->CreatePayment([
+                    'user_id' => $createUser['user']->id,
                     'product_id' => $request->product_id,
-                    'amount' => $request->total_amount,
-                    'part_pay' => $request->amount,
+                    'amount' => $request->amount,
                     'invoice_number'=> $invoice_number,
                     'payment_date_time' => Carbon::now()->toDateTimeString(),
                     'invoiceReference' => $monifyConfig->invoiceReference,
                     'transactionReference' => $monifyConfig->transactionReference,
                     'url' => $monifyConfig->checkoutUrl,
                     'account_number' => $monifyConfig->accountNumber
-                ]);
-                // log purchase
-                $purchase = Purchase::create([
-                    'user_id' => $new_user->id,
-                    'product_id' => $request->product_id,
-                    'payment_id' =>  $new_payment->id,
-                    'quantity' => 1,
-                    'meta_data' => $request->metadata,
-                    'purchase_date' => Carbon::now(),
-                    'expiring_date' => Carbon::now(),
-                    'invoice_number' => $invoice_number
-                ]);
+                 ]);
+                 if($createPayment["status"] == "OK"){
+                    // log New purchase
+                    $createPurchase = $this->purchaseRepo->CreatePurchase(
+                        [
+                            'user_id' => $createUser['user']->id,
+                            'product_id' => $request->product_id,
+                            'payment_id' =>  $createPayment['newPayment']->id,
+                            'quantity' => 1,
+                            'meta_data' => $request->metadata,
+                            'purchase_date' => Carbon::now(),
+                            'expiring_date' => Carbon::now(),
+                            'invoice_number' => $invoice_number
+                        ]
+                        );
+                        if($createPurchase["status"] == "OK"){
+                            return $this->successResponse($monifyConfig);
+                        }
+                 }
               
-                return $this->success([ 'data' => $monifyConfig]);
+                
+            }
+           
+               
             }
             else{
-                return $this->error('', 'Oops!!, issues with parameter(s) supplied', 401);
+                return $this->errorResponse('', 'Oops!!, issues with parameter(s) supplied', 401);
             }
         }
         catch(\Throwable $th){
-            return $this->error('','Oops!!, Please try again', 401);
+            return $this->errorResponse('','Oops!!, Please try again', 401);
         }
          
         
@@ -152,7 +166,7 @@ class PaymentController extends Controller
             }
             $status = PaymentHelper::getTransactionStatus($reference);
             if(!is_string($status) && $status->paymentStatus == 'PAID'){
-                $check_ref->payment_status = "SUCCESS";
+                $check_ref->payment_status = "successResponse";
                 $check_ref->save();
             }
             if($check_ref->part_pay < $check_ref->amount){
