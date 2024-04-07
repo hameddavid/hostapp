@@ -21,7 +21,7 @@ class PurchaseRepository implements IPurchaseRepository{
         $createNewPurchase->invoice_number = $purchase['invoice_number'];
         $createNewPurchase->save();
         if($createNewPurchase){
-            return ["purchase" => $createNewPurchase, "status" => "OK"];
+            return ["newPurchase" => $createNewPurchase, "status" => "OK"];
         }
         return ["purchase" => "", "status" => "NOK"];
     }

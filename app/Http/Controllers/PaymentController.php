@@ -52,33 +52,36 @@ class PaymentController extends Controller
                     $purchase_check = Purchase::where(['payment_id' => $payment_check->id, 'purchase_status' => 'PENDING'])->first();
                     $purchase_check->meta_data = $request->metadata;
                     $purchase_check->save();
-                    return $this->successResponseResponse([ 'data' => $monifyConfig]);
+                    return $this->successResponse([ 'data' => $monifyConfig]);
                 }else{
-                $payment = Payment::create([
-                    'user_id' => $user->id,
-                    'product_id' => $request->product_id,
-                    'amount' => $request->total_amount,
-                    'part_pay' => $request->amount,
-                    'invoice_number'=> $invoice_number,
-                    'payment_date_time' => Carbon::now()->toDateTimeString(),
-                    'invoiceReference' => $monifyConfig->invoiceReference,
-                    'transactionReference' => $monifyConfig->transactionReference,
-                    'url' => $monifyConfig->checkoutUrl,
-                    'account_number' => $monifyConfig->accountNumber
-                ]);
-                // log purchase
-                $purchase = Purchase::create([
-                    'user_id' => $user->id,
-                    'product_id' => $request->product_id,
-                    'payment_id' =>  $payment->id,
-                    'quantity' => 1,
-                    'meta_data' => $request->metadata,
-                    'purchase_date' => Carbon::now(),
-                    'expiring_date' => Carbon::now(),
-                    'invoice_number' => $invoice_number
-                ]);
-             
-                return $this->successResponse([ 'data' => $monifyConfig]);
+                    // Log new payment
+                    $payment =  $this->payRepo->CreatePayment([
+                        'user_id' => $user->id,
+                        'product_id' => $request->product_id,
+                        'amount' => $request->amount,
+                        'part_pay' => $request->amount,
+                        'invoice_number'=> $invoice_number,
+                        'payment_date_time' => Carbon::now()->toDateTimeString(),
+                        'invoiceReference' => $monifyConfig->invoiceReference,
+                        'transactionReference' => $monifyConfig->transactionReference,
+                        'url' => $monifyConfig->checkoutUrl,
+                        'account_number' => $monifyConfig->accountNumber]);
+                        if($payment["status"]=="OK"){
+                            // Log new Purchase
+                            $purchase = $this->purchaseRepo->CreatePurchase([
+                                'user_id' => $user->id,
+                                'product_id' => $request->product_id,
+                                'payment_id' =>  $payment["newPayment"]->id,
+                                'quantity' => 1,
+                                'meta_data' => $request->metadata,
+                                'purchase_date' => Carbon::now(),
+                                'expiring_date' => Carbon::now(),
+                                'invoice_number' => $invoice_number]);
+                                if($purchase["status"]=="OK"){
+                                    return $this->successResponse([ 'data' => $monifyConfig]);
+                                }
+                        }
+                        
                 }
             }
            elseif(!$user){
