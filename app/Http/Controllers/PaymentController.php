@@ -33,7 +33,7 @@ class PaymentController extends Controller
     }
 
     public function make_payment(MakePaymentRequest $request){
-        try{
+        // try{
             $request->validated($request->all());
             $user = $this->userRepo->GetUserByEmail($request->email); //FirstOrCreate
             if($user){
@@ -128,10 +128,10 @@ class PaymentController extends Controller
             else{
                 return $this->errorResponse('', 'Oops!!, issues with parameter(s) supplied', 401);
             }
-        }
-        catch(\Throwable $th){
-            return $this->errorResponse('','Oops!!, Please try again', 401);
-        }
+        // }
+        // catch(\Throwable $th){
+        //     return $this->errorResponse('','Oops!!, Please try again', 401);
+        // }
          
         
     }
