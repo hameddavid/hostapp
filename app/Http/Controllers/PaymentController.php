@@ -33,6 +33,7 @@ class PaymentController extends Controller
     }
 
     public function make_payment(MakePaymentRequest $request){
+        return "Working ...";
         try{
             $request->validated($request->all());
             $user = $this->userRepo->GetUserByEmail($request->email); //FirstOrCreate
