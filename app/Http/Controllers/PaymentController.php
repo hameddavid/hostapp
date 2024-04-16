@@ -35,12 +35,11 @@ class PaymentController extends Controller
     public function make_payment(MakePaymentRequest $request){
         try{
             $request->validated($request->all());
-            $user = $this->userRepo->GetUserByEmail($request->email);
+            $user = $this->userRepo->GetUserByEmail($request->email); //FirstOrCreate
             if($user){
                 $invoice_number = Carbon::now()->timestamp."-".$user->id;
                 $monifyConfig = PaymentHelper::createInvoice($request->amount,'Desc',$request->email,$user->name );
-                $payment_check = Payment::where(['user_id'=>$user->id, 'payment_status'=>'PENDING',
-                'amount'=> $request->amount ])->first();
+                $payment_check = Payment::where(['user_id'=>$user->id, 'payment_status'=>'PENDING','amount'=> $request->amount ])->first();
                 if( $payment_check ){
                     $payment_check->product_id = $request->product_id;
                     $payment_check->payment_date_time = Carbon::now()->toDateTimeString();
@@ -80,8 +79,7 @@ class PaymentController extends Controller
                                 if($purchase["status"]=="OK"){
                                     return $this->successResponse([ 'data' => $monifyConfig]);
                                 }
-                        }
-                        
+                        }      
                 }
             }
            elseif(!$user){
