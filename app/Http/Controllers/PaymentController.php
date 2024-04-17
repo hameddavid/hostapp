@@ -38,8 +38,8 @@ class PaymentController extends Controller
             $user = $this->userRepo->GetUserByEmail($request->email); //FirstOrCreate
             if($user){
                 $invoice_number = Carbon::now()->timestamp."-".$user->id;
-                $monifyConfig = PaymentHelper::createInvoice($request->amount,'Desc',$request->email,$user->name );
-                $payment_check = Payment::where(['user_id'=>$user->id, 'payment_status'=>'PENDING','amount'=> $request->amount ])->first();
+                $monifyConfig = PaymentHelper::createInvoice($request->total_amount,'Desc',$request->email,$user->name );
+                $payment_check = Payment::where(['user_id'=>$user->id, 'payment_status'=>'PENDING','amount'=> $request->total_amount ])->first();
                 if( $payment_check ){
                     $payment_check->product_id = $request->product_id;
                     $payment_check->payment_date_time = Carbon::now()->toDateTimeString();
@@ -57,8 +57,8 @@ class PaymentController extends Controller
                     $payment =  $this->payRepo->CreatePayment([
                         'user_id' => $user->id,
                         'product_id' => $request->product_id,
-                        'amount' => $request->amount,
-                        'part_pay' => $request->amount,
+                        'amount' => $request->total_amount,
+                        'part_pay' => $request->total_amount,
                         'invoice_number'=> $invoice_number,
                         'payment_date_time' => Carbon::now()->toDateTimeString(),
                         'invoiceReference' => $monifyConfig->invoiceReference,
@@ -89,11 +89,11 @@ class PaymentController extends Controller
             if($createUser['status'] == "OK"){
                 // Log New Payment
                  $invoice_number = Carbon::now()->timestamp."-".$createUser['user']->id;
-                 $monifyConfig = PaymentHelper::createInvoice($request->amount,'Desc',$request->email,$createUser['user']->name );
+                 $monifyConfig = PaymentHelper::createInvoice($request->total_amount,'Desc',$request->email,$createUser['user']->name );
                  $createPayment = $this->payRepo->CreatePayment([
                     'user_id' => $createUser['user']->id,
                     'product_id' => $request->product_id,
-                    'amount' => $request->amount,
+                    'amount' => $request->total_amount,
                     'invoice_number'=> $invoice_number,
                     'payment_date_time' => Carbon::now()->toDateTimeString(),
                     'invoiceReference' => $monifyConfig->invoiceReference,
