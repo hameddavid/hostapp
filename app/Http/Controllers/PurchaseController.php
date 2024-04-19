@@ -16,7 +16,7 @@ class PurchaseController extends Controller
     public function index()
     {
         return PurchaseResource::collection(
-            Purchase::where('user_id', Auth::user()->id)->get()
+            Purchase::where('user_id', Auth::user()->id)->with(['product', 'payment'])->get()
         );
     }
 
@@ -44,7 +44,9 @@ class PurchaseController extends Controller
      */
     public function show(string $id)
     {
-        //
+        return PurchaseResource::collection(
+            Purchase::with(['product', 'payment'])->find($id)
+        );
     }
 
     /**

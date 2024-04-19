@@ -35,6 +35,7 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::resource('/product', ProductController::class);
     Route::resource('/purchase', PurchaseController::class);
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::apiResource('payment', PaymentController::class);
 });
 
 

@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\AuthController;
+use App\Http\Resources\PaymentResource;
 use App\Models\Purchase;
 use App\Repositories\PaymentRepository;
 use App\Repositories\PurchaseRepository;
@@ -130,6 +131,7 @@ class PaymentController extends Controller
             }
         }
         catch(\Throwable $th){
+            throw $th;
             return $this->errorResponse('','Oops!!, Please try again', 401);
         }
          
@@ -188,6 +190,23 @@ class PaymentController extends Controller
         }
         
         
+    }
+
+    public function index(){
+        return PaymentResource::collection(
+            $this->payRepo->getUserPayments(
+                userId: auth()->user->id
+            )->load('product')
+        );
+    }
+
+    public function show(int $id) {
+        return PaymentResource::collection(
+            $this->payRepo->getUserPayment(
+                userId: auth()->user->id,
+                paymentId: $id
+            )->load('product')
+        );
     }
     
 }

@@ -28,4 +28,15 @@ class PaymentRepository implements IPaymentRepository{
         return ["newPayment" => "", "status" => "NOK"];
     }
 
+    public function getUserPayment($userId, $paymentId) {
+        return Payment::where([
+            'payment_id' => $paymentId,
+            'user_id' => $userId
+        ])->first();
+    }
+
+    public function getUserPayments($userId) {
+        return Payment::where('user_id', $userId)->get();
+    }
+
 }

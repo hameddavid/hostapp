@@ -16,12 +16,21 @@ class PurchaseResource extends JsonResource
     {
         return [
             'id' => (string) $this->id,
-            'user' => $this->user->email,
-            'purchase' => [
-                'product_name' => $this->product->name,
-                'product_description' => $this->product->description,
-                'product_amount' => $this->product->amount,
-            ]
+            'userId' => $this->user_id,
+            'productId' => $this->product_id,
+            'paymentId' => $this->payment_id,
+            'quantity' => $this->quantity,
+            'purchaseDate' => $this->purchase_date,
+            'expiringDate' => $this->expiring_date,
+            'invoiceNumber' => $this->invoice_number,
+            'purchaseStatus' => $this->purchase_status,
+            'product' => $this->whenLoaded('product', function(){
+                return ProductResource::collection($this->product);
+            }),
+            'payment' => $this->whenLoaded('payment', function(){
+                return PaymentResource::collection($this->payment);
+            }),
+            'metaData' => $this->metaData
         ];
     }
 }
