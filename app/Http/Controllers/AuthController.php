@@ -24,7 +24,7 @@ class AuthController extends Controller
         return $this->error('', 'Credentials do not match', 401);
        }
        $user = User::where('email',$request->email)->first();
-       return $this->success([
+       return $this->successResponse([
             'user' => $user,
             'token' => $user->createToken('Api Token of' . $user->name)->plainTextToken
        ]);
@@ -40,7 +40,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password)
         ]);
 
-        return $this->success([
+        return $this->successResponse([
             'user' => $user,
             'token' => $user->createToken('Api Token of'. $user->name)->plainTextToken
         ]);
@@ -81,7 +81,7 @@ class AuthController extends Controller
 
         Auth::user()->currentAccessToken()->delete();
         
-        return $this->success([
+        return $this->successResponse([
             'message' => 'Logged out successfully'
         ]);
     }
