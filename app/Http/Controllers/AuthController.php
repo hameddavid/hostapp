@@ -26,7 +26,8 @@ class AuthController extends Controller
        $user = User::where('email',$request->email)->first();
        return $this->successResponse([
             'user' => $user,
-            'token' => $user->createToken('Api Token of' . $user->name)->plainTextToken
+            'token' => $user->createToken('Api Token of' . $user->name)->plainTextToken,
+            'message' => 'Login was successful!'
        ]);
     }
 
