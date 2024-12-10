@@ -66,7 +66,7 @@ class PaymentHelper{
     }
     
     public static function getMultiplier(){
-        $multiplier = 1160.42;
+        $multiplier = 1700.00;
         return $multiplier;
     }
  
