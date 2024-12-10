@@ -42,7 +42,8 @@ class PaymentHelper{
         // Log::info($generateInvoice->json());
         $response= json_decode(json_encode($generateInvoice->json()),FALSE);
         // Log::info($response);
-        return $response->responseBody;
+        //return $response->responseBody;
+        return $response;
     }
     
     public static function getTransactionStatus($reference){
