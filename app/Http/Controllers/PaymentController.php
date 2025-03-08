@@ -36,7 +36,7 @@ class PaymentController extends Controller
     public function make_payment(MakePaymentRequest $request){
         try{
             $request->validated($request->all());
-            $user = $this->userRepo->GetUserByEmail($request->email); //FirstOrCreate
+            $user = $this->userRepo->GetUserByEmail($request->email);
             if($user){
                 $invoice_number = Carbon::now()->timestamp."-".$user->id;
                 $monifyConfig = PaymentHelper::createInvoice($request->total_amount,'Desc',$request->email,$user->name );

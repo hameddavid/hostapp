@@ -39,9 +39,7 @@ class PaymentHelper{
             "customerName"=>$name,
             "expiryDate"=>Carbon::now()->addDays(30)->toDateTimeString()
         ]);
-        // Log::info($generateInvoice->json());
         $response= json_decode(json_encode($generateInvoice->json()),FALSE);
-        // Log::info($response);
         return $response->responseBody;
     }
     
@@ -67,6 +65,39 @@ class PaymentHelper{
     public static function getMultiplier(){
         $multiplier = 1600.00;
         return $multiplier;
+    }
+
+    public static function payStack($amount, $description, $email, $name) {
+        info($amount * SELF::getMultiplier());
+        $request = Http::withHeaders([
+             "Authorization"=>"Bearer ". env('PAYSTACK_SERCET_KEY'),
+             'Content-Type'=> 'application/json'
+        ])->post('https://api.paystack.co/transaction/initialize', [ 
+            'email' => $email,
+            'amount' =>($amount * SELF::getMultiplier()) * 100,
+        ]);
+        
+        $response = json_decode(json_encode($request->json()),FALSE);
+
+        $data = $response->data;
+        $array = [
+            'invoiceReference' => $data->reference,
+            'transactionReference' => $data->reference,
+            'checkoutUrl' => $data->authorization_url,
+            'accountNumber' => 'PayStack'
+        ];
+
+        return json_decode(json_encode($array));
+    }
+
+    public static function cancelIvoiceMonnify() {
+        $login = SELF::monnifyLogin();
+        $response = Http::withHeaders([
+            "Authorization"=>"Bearer {$login->responseBody->accessToken}",
+            "Accept" => "application/json",
+            'Content-Type'=> 'application/json'
+        ])->delete(env("MONNIFY_LIVE_ENDPOINT")."/api/v1/invoice/1740674266/cancel");
+        return $response;
     }
  
 }
